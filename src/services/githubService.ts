@@ -13,7 +13,9 @@ import {
 // at `/api/github` which uses an httpOnly cookie-set token.
 
 const GITHUB_API = 'https://api.github.com'
-const PROXY_PREFIX = '/api/github'
+// When running locally the OAuth proxy listens on port 4000.
+// Use the full proxy URL so requests reach the proxy instead of the Vite dev server.
+const PROXY_PREFIX = 'http://localhost:4000/api/github'
 
 class GitHubService {
   private token: string | null = null
