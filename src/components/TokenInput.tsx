@@ -73,6 +73,15 @@ const TokenInput: React.FC<TokenInputProps> = ({ onTokenSet }) => {
         </div>
       </form>
 
+      <div className="mt-4 flex justify-center">
+        <a
+          href="http://localhost:4000/auth/github"
+          className="flex-1 text-center bg-gray-800 text-white py-2 px-4 rounded-md hover:bg-gray-900"
+        >
+          Sign in with GitHub
+        </a>
+      </div>
+
       <div className="mt-4 text-xs text-gray-500">
         <p className="mb-2">To create a token:</p>
         <ol className="list-decimal list-inside space-y-1">

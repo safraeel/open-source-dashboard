@@ -8,7 +8,12 @@ import {
   IssueSearchFilters 
 } from '../types/github'
 
-const API_BASE_URL = 'https://api.github.com'
+// When a user provides a PAT the client will call the GitHub API directly.
+// If no PAT is provided we proxy requests through the local OAuth server
+// at `/api/github` which uses an httpOnly cookie-set token.
+
+const GITHUB_API = 'https://api.github.com'
+const PROXY_PREFIX = '/api/github'
 
 class GitHubService {
   private token: string | null = null
@@ -35,29 +40,31 @@ class GitHubService {
     }
   }
 
+  // Choose base URL depending on whether a client-side token exists
+  private getApiBase() {
+    return this.getToken() ? GITHUB_API : PROXY_PREFIX
+  }
+
   async getCurrentUser(): Promise<GitHubUser> {
-    const response = await axios.get(`${API_BASE_URL}/user`, this.getHeaders())
+    const response = await axios.get(`${this.getApiBase()}/user`, this.getHeaders())
     return response.data
   }
 
   async getUser(username: string): Promise<GitHubUser> {
-    const response = await axios.get(`${API_BASE_URL}/users/${username}`, this.getHeaders())
+    const response = await axios.get(`${this.getApiBase()}/users/${username}`, this.getHeaders())
     return response.data
   }
 
   async getUserRepos(username: string, page: number = 1): Promise<GitHubRepo[]> {
-    const response = await axios.get(
-      `${API_BASE_URL}/users/${username}/repos`,
-      {
-        ...this.getHeaders(),
-        params: {
-          page,
-          per_page: 100,
-          sort: 'updated',
-          direction: 'desc'
-        }
+    const response = await axios.get(`${this.getApiBase()}/users/${username}/repos`, {
+      ...this.getHeaders(),
+      params: {
+        page,
+        per_page: 100,
+        sort: 'updated',
+        direction: 'desc'
       }
-    )
+    })
     return response.data
   }
 
@@ -67,13 +74,10 @@ class GitHubService {
       params.since = since
     }
 
-    const response = await axios.get(
-      `${API_BASE_URL}/repos/${username}/${repo}/commits`,
-      {
-        ...this.getHeaders(),
-        params
-      }
-    )
+    const response = await axios.get(`${this.getApiBase()}/repos/${username}/${repo}/commits`, {
+      ...this.getHeaders(),
+      params
+    })
     return response.data
   }
 
@@ -91,59 +95,41 @@ class GitHubService {
       params.order = filters.order
     }
 
-    const response = await axios.get(
-      `${API_BASE_URL}/search/issues`,
-      {
-        ...this.getHeaders(),
-        params
-      }
-    )
+    const response = await axios.get(`${this.getApiBase()}/search/issues`, {
+      ...this.getHeaders(),
+      params
+    })
     return response.data.items
   }
 
   async getRepoIssues(owner: string, repo: string, state: 'open' | 'closed' = 'open'): Promise<GitHubIssue[]> {
-    const response = await axios.get(
-      `${API_BASE_URL}/repos/${owner}/${repo}/issues`,
-      {
-        ...this.getHeaders(),
-        params: {
-          state,
-          per_page: 100
-        }
+    const response = await axios.get(`${this.getApiBase()}/repos/${owner}/${repo}/issues`, {
+      ...this.getHeaders(),
+      params: {
+        state,
+        per_page: 100
       }
-    )
+    })
     return response.data
   }
 
   async getRepoLabels(owner: string, repo: string): Promise<GitHubLabel[]> {
-    const response = await axios.get(
-      `${API_BASE_URL}/repos/${owner}/${repo}/labels`,
-      this.getHeaders()
-    )
+    const response = await axios.get(`${this.getApiBase()}/repos/${owner}/${repo}/labels`, this.getHeaders())
     return response.data
   }
 
   async getContributorsStats(owner: string, repo: string): Promise<any[]> {
-    const response = await axios.get(
-      `${API_BASE_URL}/repos/${owner}/${repo}/stats/contributors`,
-      this.getHeaders()
-    )
+    const response = await axios.get(`${this.getApiBase()}/repos/${owner}/${repo}/stats/contributors`, this.getHeaders())
     return response.data
   }
 
   async getRepository(owner: string, repo: string): Promise<GitHubRepo> {
-    const response = await axios.get(
-      `${API_BASE_URL}/repos/${owner}/${repo}`,
-      this.getHeaders()
-    )
+    const response = await axios.get(`${this.getApiBase()}/repos/${owner}/${repo}`, this.getHeaders())
     return response.data
   }
 
   async getLanguages(owner: string, repo: string): Promise<Record<string, number>> {
-    const response = await axios.get(
-      `${API_BASE_URL}/repos/${owner}/${repo}/languages`,
-      this.getHeaders()
-    )
+    const response = await axios.get(`${this.getApiBase()}/repos/${owner}/${repo}/languages`, this.getHeaders())
     return response.data
   }
 
