@@ -1,0 +1,7 @@
+name = "open-source-dashboard-oauth-proxy"
+main = "index.mjs"
+compatibility_date = "2026-03-26"
+workers_dev = true
+
+[vars]
+FRONTEND_URL = "https://safraeel.github.io/open-source-dashboard/"
